@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">StackExchangeTestApp</string>
+    <string name="user">User</string>
+    <string name="userName">"User Name: %s"</string>
+    <string name="reputation">"Reputation: %s"</string>
+    <string name="topTags">"Top Tags: "</string>
+    <string name="topTagsNA">Top Tags: N/A</string>
+    <string name="badges">"Badges: "</string>
+    <string name="gold">"Gold: %s, "</string>
+    <string name="silver">"Silver: %s, "</string>
+    <string name="bronze">"Bronze: %s"</string>
+    <string name="location">"Location: %s"</string>
+    <string name="creationDate">"Creation Date: %s"</string>
+    <string name="na">N/A</string>
 </resources>

@@ -32,13 +32,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alex_podolian.stackexchangetestapp.action.OpenUserDetailsScreen
+import com.alex_podolian.stackexchangetestapp.action.contract.ActionExecutor
 import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchIntent
 import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchState
+import com.alex_podolian.stackexchangetestapp.data.model.User
+import com.alex_podolian.stackexchangetestapp.ui.composables.LoadingIndicator
 import com.alex_podolian.stackexchangetestapp.ui.theme.*
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchScreen() {
+fun SearchScreen(
+    executor: ActionExecutor? = null,
+) {
     val viewModel = viewModel<SearchViewModel>()
     val state by viewModel.state.collectAsState(initial = SearchState())
 
@@ -48,10 +54,6 @@ fun SearchScreen() {
                 //TODO: implement effect handling
             }
         }
-    }
-
-    if (state.isLoading) {
-        //TODO: implement loading indicator
     }
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -77,12 +79,14 @@ fun SearchScreen() {
                 keyboardController = keyboardController,
                 queryInput = state.queryInput,
                 onQueryChange = { viewModel.dispatch(SearchIntent.ChangeQuery(it)) },
-                onQuerySubmit = { state.queryInput?.let { viewModel.dispatch(SearchIntent.SubmitQuery(it)) } }
+                onQuerySubmit = {
+                    state.queryInput?.let { if (it.length >= 2) viewModel.dispatch(SearchIntent.SubmitQuery(it)) }
+                }
             )
             Button(
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    state.queryInput?.let { viewModel.dispatch(SearchIntent.SubmitQuery(it)) }
+                    state.queryInput?.let { if (it.length >= 2) viewModel.dispatch(SearchIntent.SubmitQuery(it)) }
                     keyboardController?.hide()
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Teal100),
@@ -99,6 +103,10 @@ fun SearchScreen() {
                 )
             }
         }
+        if (state.isLoading) {
+            LoadingIndicator()
+            return@Column
+        }
         val lazyListState = rememberLazyListState()
         state.users?.let { users ->
             if (users.isNotEmpty()) {
@@ -106,8 +114,8 @@ fun SearchScreen() {
                     contentPadding = PaddingValues(vertical = 4.dp),
                     state = lazyListState
                 ) {
-                    itemsIndexed(users) { index, item ->
-                        UserListItem(item.name, item.reputation)
+                    itemsIndexed(users) { _, item ->
+                        UserListItem(item, executor)
                     }
                 }
             }
@@ -116,14 +124,17 @@ fun SearchScreen() {
 }
 
 @Composable
-fun UserListItem(name: String, reputation: Int) {
+fun UserListItem(
+    user: User,
+    executor: ActionExecutor?
+) {
     Box(
         modifier = Modifier
             .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier
-                .clickable { }
+                .clickable { executor?.let { it(OpenUserDetailsScreen(user)) } }
                 .fillMaxWidth()
                 .height(36.dp)
                 .background(color = Blue370, shape = RoundedCornerShape(2.dp)),
@@ -132,7 +143,7 @@ fun UserListItem(name: String, reputation: Int) {
         ) {
             Text(
                 modifier = Modifier.padding(start = 16.dp),
-                text = reputation.toString(),
+                text = user.reputation.toString(),
                 style = TextStyle(
                     color = Color.White,
                     fontSize = 14.sp,
@@ -141,7 +152,7 @@ fun UserListItem(name: String, reputation: Int) {
             )
             Text(
                 modifier = Modifier.padding(end = 16.dp),
-                text = name,
+                text = user.name,
                 style = TextStyle(
                     color = Color.White,
                     fontSize = 14.sp,

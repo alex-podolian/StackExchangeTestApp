@@ -48,8 +48,7 @@ class SearchStore(private val scope: CoroutineScope) :
                     it.printStackTrace()
                 }
                 .collect {
-                    val users = it.items
-                    statePublisher(state.copy(isLoading = false, users = users))
+                    statePublisher(state.copy(isLoading = false, users = it.items))
                 }
         }
     }

@@ -1,6 +1,7 @@
 package com.alex_podolian.stackexchangetestapp.data.model
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 data class User(
     @SerializedName("user_id")
@@ -12,12 +13,12 @@ data class User(
     @SerializedName("creation_date")
     val creationDate: Long,
     @SerializedName("location")
-    val location: String,
+    val location: String?,
     @SerializedName("profile_image")
     val profileImageUrl: String,
     @SerializedName("reputation")
     val reputation: Int
-)
+) : Serializable
 
 data class Badges(
     @SerializedName("bronze")
@@ -26,7 +27,7 @@ data class Badges(
     val gold: Int,
     @SerializedName("silver")
     val silver: Int
-)
+) : Serializable
 
 data class Users(
     @SerializedName("items")
