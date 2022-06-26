@@ -32,8 +32,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alex_podolian.stackexchangetestapp.KEY_RETRY_ACTION
+import com.alex_podolian.stackexchangetestapp.action.OpenErrorScreenAction
 import com.alex_podolian.stackexchangetestapp.action.OpenUserDetailsScreen
+import com.alex_podolian.stackexchangetestapp.action.RetryAction
 import com.alex_podolian.stackexchangetestapp.action.contract.ActionExecutor
+import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchEffect
 import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchIntent
 import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchState
 import com.alex_podolian.stackexchangetestapp.data.model.User
@@ -51,7 +55,15 @@ fun SearchScreen(
     LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                //TODO: implement effect handling
+                is SearchEffect.NavigateToErrorScreen -> executor?.let {
+                    val retryAction = object : RetryAction() {
+                        override fun invoke() {
+                            state.queryInput?.let { viewModel.dispatch(SearchIntent.SubmitQuery(it)) }
+                        }
+                    }
+                    effect.data[KEY_RETRY_ACTION] = retryAction
+                    it(OpenErrorScreenAction(effect.data))
+                }
             }
         }
     }

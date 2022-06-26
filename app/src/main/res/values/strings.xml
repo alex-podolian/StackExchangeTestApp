@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">StackExchangeTestApp</string>
     <string name="user">User</string>
+    <string name="error">Error</string>
     <string name="userName">"User Name: %s"</string>
     <string name="reputation">"Reputation: %s"</string>
     <string name="topTags">"Top Tags: "</string>
@@ -12,4 +13,8 @@
     <string name="location">"Location: %s"</string>
     <string name="creationDate">"Creation Date: %s"</string>
     <string name="na">N/A</string>
+    <string name="noInternetConnection">There is no internet connection</string>
+    <string name="checkInternet">Please check your internet connection and try again later</string>
+    <string name="tryLater">Please try again later</string>
+    <string name="retry">Retry</string>
 </resources>

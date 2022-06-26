@@ -16,7 +16,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alex_podolian.stackexchangetestapp.KEY_RETRY_ACTION
 import com.alex_podolian.stackexchangetestapp.R
+import com.alex_podolian.stackexchangetestapp.action.OpenErrorScreenAction
+import com.alex_podolian.stackexchangetestapp.action.RetryAction
+import com.alex_podolian.stackexchangetestapp.action.contract.ActionExecutor
+import com.alex_podolian.stackexchangetestapp.core.presentation.userdetails.UserDetailsEffect
+import com.alex_podolian.stackexchangetestapp.core.presentation.userdetails.UserDetailsIntent
 import com.alex_podolian.stackexchangetestapp.core.presentation.userdetails.UserDetailsState
 import com.alex_podolian.stackexchangetestapp.data.model.User
 import com.alex_podolian.stackexchangetestapp.ui.composables.ImageWithDefaultPlaceholder
@@ -25,14 +31,25 @@ import com.alex_podolian.stackexchangetestapp.utils.formatDate
 import java.lang.String.format
 
 @Composable
-fun UserDetailsScreen(user: User) {
+fun UserDetailsScreen(
+    user: User,
+    executor: ActionExecutor? = null,
+) {
     val viewModel = viewModel<UserDetailsViewModel>(factory = UserDetailsViewModelFactory(user.id.toString()))
     val state by viewModel.state.collectAsState(initial = UserDetailsState())
 
     LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                //TODO: implement effect handling
+                is UserDetailsEffect.NavigateToErrorScreen -> executor?.let {
+                    val retryAction = object : RetryAction() {
+                        override fun invoke() {
+                            viewModel.dispatch(UserDetailsIntent.FetchTopTags(user.id.toString()))
+                        }
+                    }
+                    effect.data[KEY_RETRY_ACTION] = retryAction
+                    it(OpenErrorScreenAction(effect.data))
+                }
             }
         }
     }

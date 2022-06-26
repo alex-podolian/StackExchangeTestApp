@@ -1,5 +1,6 @@
 package com.alex_podolian.stackexchangetestapp.core.presentation.search
 
+import com.alex_podolian.stackexchangetestapp.KEY_ERROR_TEXT
 import com.alex_podolian.stackexchangetestapp.business.usecases.DefaultFetchUsersCase
 import com.alex_podolian.stackexchangetestapp.core.presentation.BaseStore
 import com.alex_podolian.stackexchangetestapp.core.presentation.EffectPublisher
@@ -23,7 +24,7 @@ class SearchStore(private val scope: CoroutineScope) :
         effectPublisher: EffectPublisher<SearchEffect>
     ): Unit = when (intent) {
         is SearchIntent.ChangeQuery -> changeQuery(intent, state, statePublisher)
-        is SearchIntent.SubmitQuery -> loadSearchResults(intent, state, statePublisher)
+        is SearchIntent.SubmitQuery -> loadSearchResults(intent, state, statePublisher, effectPublisher)
     }
 
     private fun changeQuery(
@@ -37,13 +38,19 @@ class SearchStore(private val scope: CoroutineScope) :
     private suspend fun loadSearchResults(
         intent: SearchIntent.SubmitQuery,
         state: SearchState,
-        statePublisher: StatePublisher<SearchState>
+        statePublisher: StatePublisher<SearchState>,
+        effectPublisher: EffectPublisher<SearchEffect>
     ) {
         withContext(Dispatchers.IO) {
             DefaultFetchUsersCase(UserRepository(ApiHelper(NetworkManager.apiService)))
                 .invoke(query = intent.query)
                 .onStart { statePublisher(state.copy(isLoading = true)) }
                 .catch {
+                    val data = HashMap<String, Any?>()
+                    data.apply {
+                        put(KEY_ERROR_TEXT, it.message)
+                    }
+                    effectPublisher(SearchEffect.NavigateToErrorScreen(data))
                     statePublisher(state.copy(isLoading = false))
                     it.printStackTrace()
                 }
