@@ -7,19 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.alex_podolian.stackexchangetestapp.action.contract.ActionExecutor
-import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchState
+import com.alex_podolian.stackexchangetestapp.ui.composables.TopBar
 import com.alex_podolian.stackexchangetestapp.ui.composables.search.SearchScreen
 import com.alex_podolian.stackexchangetestapp.ui.composables.user.UserDetailsScreen
-import com.alex_podolian.stackexchangetestapp.ui.composables.search.SearchViewModel
+import com.alex_podolian.stackexchangetestapp.ui.theme.Blue700
 import com.alex_podolian.stackexchangetestapp.ui.theme.StackExchangeTestAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -39,9 +35,12 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     scaffoldState = scaffoldState,
-                    backgroundColor = Color.DarkGray,
+                    backgroundColor = Blue700,
                     topBar = {
-                             //TODO: implement topBar
+                        TopBar(
+                            navController = navController,
+                            title = resources.getString(R.string.app_name)
+                        )
                     },
                     snackbarHost = {
                         //TODO: implement snackbar to inform user regarding occurred errors

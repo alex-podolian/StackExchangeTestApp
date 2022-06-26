@@ -1,13 +1,42 @@
 package com.alex_podolian.stackexchangetestapp.ui.composables.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchIntent
 import com.alex_podolian.stackexchangetestapp.core.presentation.search.SearchState
+import com.alex_podolian.stackexchangetestapp.ui.theme.*
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchScreen() {
     val viewModel = viewModel<SearchViewModel>()
@@ -25,5 +54,147 @@ fun SearchScreen() {
         //TODO: implement loading indicator
     }
 
-    Text(text = "SearchScreen")
+    val keyboardController = LocalSoftwareKeyboardController.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            SearchBar(
+                modifier = Modifier
+                    .weight(3f)
+                    .height(36.dp)
+                    .padding(end = 16.dp)
+                    .background(color = Blue600, shape = RoundedCornerShape(2.dp)),
+                placeholder = "Search",
+                keyboardController = keyboardController,
+                queryInput = state.queryInput,
+                onQueryChange = { viewModel.dispatch(SearchIntent.ChangeQuery(it)) },
+                onQuerySubmit = { state.queryInput?.let { viewModel.dispatch(SearchIntent.SubmitQuery(it)) } }
+            )
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    state.queryInput?.let { viewModel.dispatch(SearchIntent.SubmitQuery(it)) }
+                    keyboardController?.hide()
+                },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Teal100),
+                shape = RoundedCornerShape(7F, 7F, 7F, 7F),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp)
+            ) {
+                Text(
+                    text = "Search",
+                    style = TextStyle(
+                        color = Blue800,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
+        }
+        val lazyListState = rememberLazyListState()
+        state.users?.let { users ->
+            if (users.isNotEmpty()) {
+                LazyColumn(
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    state = lazyListState
+                ) {
+                    itemsIndexed(users) { index, item ->
+                        UserListItem(item.name, item.reputation)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UserListItem(name: String, reputation: Int) {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { }
+                .fillMaxWidth()
+                .height(36.dp)
+                .background(color = Blue370, shape = RoundedCornerShape(2.dp)),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                modifier = Modifier.padding(start = 16.dp),
+                text = reputation.toString(),
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+            )
+            Text(
+                modifier = Modifier.padding(end = 16.dp),
+                text = name,
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun SearchBar(
+    modifier: Modifier = Modifier,
+    placeholder: String,
+    keyboardController: SoftwareKeyboardController?,
+    queryInput: String?,
+    onQueryChange: (String) -> Unit,
+    onQuerySubmit: () -> Unit
+) {
+    Box(
+        modifier = modifier.border(1.dp, Color.DarkGray, RoundedCornerShape(2.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box {
+                this@Row.AnimatedVisibility(visible = queryInput.isNullOrBlank()) {
+                    Text(
+                        text = placeholder,
+                        style = TextStyle(color = Gray370, fontSize = 14.sp)
+                    )
+                }
+                BasicTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = queryInput ?: "",
+                    onValueChange = onQueryChange,
+                    textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            onQuerySubmit()
+                            keyboardController?.hide()
+                        }
+                    ),
+                    singleLine = true,
+                    cursorBrush = SolidColor(Teal100)
+                )
+            }
+        }
+    }
 }
